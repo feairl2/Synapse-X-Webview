@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+
+<script src="https://unpkg.com/monaco-editor@0.52.0/min/vs/loader.js"></script>
+
+<style>
+body {
+    margin: 0;
+    background-color: rgb(8,8,8);
+    color: #ffffff;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    overflow: hidden;
+}
+
+.header {
+    display: flex;
+    height: 38px;
+    background-color: rgb(8,8,8);
+    align-items: center;
+    border-bottom: 1px solid #1e1e1e;
+position: relative;
+    z-index: 10;
+}
+
+.tab {
+    display: flex;
+    align-items: center;
+    height: 100%;
+    padding: 0 18px;
+    border-right: 1px solid #1e1e1e;
+    font-size: 14px;
+    color: #fff;
+    cursor: pointer;
+}
+
+.tab.active {
+    background: transparent;
+    color: #cccccc;
+}
+
+.tab-icons {
+    margin-right: 8px;
+    font-size: 18px;
+    letter-spacing: 2px;
+}
+
+.close-btn {
+    margin-left: 10px;
+    font-size: 14px;
+    color: #888;
+    cursor: pointer;
+}
+
+.plus-btn {
+    padding: 0 15px;
+    color: #888;
+    font-size: 18px;
+    cursor: pointer;
+}
+
+.editor {
+    position: absolute;
+    top: 38px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.current-line-highlight,
+.line-number,
+.content {
+    display: none;
+}
+
+.monaco-editor,
+.monaco-editor-background,
+.monaco-editor .margin {
+    background-color: rgb(8,8,8) !important;
+}
+</style>
+</head>
+<body>
+
+<div class="header" id="tabs"></div>
+<div id="editor" class="editor"></div>
+
+<script>
+require.config({ paths: { vs: 'https://unpkg.com/monaco-editor@0.52.0/min/vs' } });
+
+require(['vs/editor/editor.main'], function () {
+
+    const tabsContainer = document.getElementById('tabs');
+
+    let editor;
+    let tabs = [];
+    let activeTab = null;
+    let id = 0;
+
+    function createEditor(model) {
+        if (editor) editor.dispose();
+
+        editor = monaco.editor.create(document.getElementById('editor'), {
+            model: model,
+            theme: 'vs-dark',
+            fontSize: 15,
+            fontFamily: 'Consolas, monospace',
+            minimap: { enabled: false },
+            automaticLayout: true
+        });
+    }
+
+    function createTab(name, content = '') {
+        const model = monaco.editor.createModel(content, 'python');
+
+        const tab = {
+            id: id++,
+            name,
+            model
+        };
+
+        tabs.push(tab);
+        renderTabs();
+        switchTab(tab.id);
+    }
+
+    function switchTab(tabId) {
+        const tab = tabs.find(t => t.id === tabId);
+        if (!tab) return;
+
+        activeTab = tabId;
+        createEditor(tab.model);
+        renderTabs();
+    }
+
+    function closeTab(tabId) {
+        const index = tabs.findIndex(t => t.id === tabId);
+        if (index === -1) return;
+
+        tabs[index].model.dispose();
+        tabs.splice(index, 1);
+
+        if (tabs.length === 0) {
+            createTab("Untitled");
+        } else {
+            switchTab(tabs[Math.max(0, index - 1)].id);
+        }
+    }
+
+    function renderTabs() {
+        tabsContainer.innerHTML = '';
+
+        tabs.forEach(tab => {
+            const tabEl = document.createElement('div');
+            tabEl.className = 'tab'; // ✅ 不再有 active 樣式
+
+            tabEl.innerHTML = `
+                <span class="tab-icons">✳ Ω</span>
+                <span>${tab.name}</span>
+                <span class="close-btn">✕</span>
+            `;
+
+            tabEl.onclick = () => switchTab(tab.id);
+
+            tabEl.querySelector('.close-btn').onclick = (e) => {
+                e.stopPropagation();
+                closeTab(tab.id);
+            };
+
+            tabsContainer.appendChild(tabEl);
+        });
+
+        const plus = document.createElement('div');
+        plus.className = 'plus-btn';
+        plus.innerText = '＋';
+        plus.onclick = () => createTab('Untitled ' + tabs.length, 'print("New Tab")');
+
+        tabsContainer.appendChild(plus);
+    }
+
+    createTab("Untitled", `print("Synapse X V3")`);
+
+});
+</script>
+
+</body>
+</html>
