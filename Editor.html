@@ -99,28 +99,28 @@ require(['vs/editor/editor.main'], function () {
     let activeTab = null;
     let id = 0;
 
-    monaco.editor.defineTheme('my-dark', {
-    base: 'vs-dark',
-    inherit: true,
-    rules: [],
-    colors: {
-        "editor.background": "#050505",
-        "minimap.background": "#050505"
-    }
-});
-    
     function createEditor(model) {
-        if (editor) editor.dispose();
+    if (editor) editor.dispose();
 
-        editor = monaco.editor.create(document.getElementById('editor'), {
-            model: model,
-            theme: 'my-dark',
-            fontSize: 15,
-            fontFamily: 'Consolas, monospace',
-            minimap: { enabled: true },
-            automaticLayout: true
-        });
-    }
+    monaco.editor.defineTheme('my-dark', {
+        base: 'vs-dark',
+        inherit: true,
+        rules: [],
+        colors: {
+            "editor.background": "#050505",
+            "minimap.background": "#050505"
+        }
+    });
+
+    editor = monaco.editor.create(document.getElementById('editor'), {
+        model: model,
+        theme: 'my-dark',
+        fontSize: 15,
+        fontFamily: 'Consolas, monospace',
+        minimap: { enabled: true },
+        automaticLayout: true
+    });
+}
 
     function createTab(name, content = '') {
         const model = monaco.editor.createModel(content, 'python');
